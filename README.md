@@ -18,9 +18,11 @@ It works in three layers, each usable on its own:
 ├── youtube-summary.sh               # clipboard/URL → report → browser (all steps, or one step at a time)
 ├── render_report.py                 # builds the page: live progress, then report + embed + seek links
 ├── job_status.py                    # writes the progress the page shows
+├── server.py                        # local web server: report pages + library page
 ├── YouTube Summary.shortcut         # macOS Shortcuts file
 └── reports/
     ├── summary-<date>.md / .html    # your reports
+    ├── library.json                 # your folders and which summaries are in them
     └── .jobs/summary-<date>/        # per-run status, transcript and logs (deleted after a successful run)
 ```
 
@@ -79,11 +81,11 @@ It runs four steps, which the Shortcut calls one at a time (`./youtube-summary.s
 
 If a step fails, the page shows which one and why, and the Shortcut stops with the error. The run's working files (status, transcript, Claude logs) are kept in `reports/.jobs/summary-<date>/` for debugging. After a successful run, that folder is deleted automatically.
 
-**Why localhost?** YouTube refuses to play embedded videos on pages opened from a file (`file://…`, "Error 153"). So the script starts a small web server the first time it runs. The server is bound to `127.0.0.1` and serves only `reports/`, and it keeps running in the background until you log out. Open `http://localhost:47821/` to browse all your reports.
+**Why localhost?** YouTube refuses to play embedded videos on pages opened from a file (`file://…`, "Error 153"). So the script starts a small web server, `server.py`, the first time it runs. The server is bound to `127.0.0.1` and serves only `reports/`, and it keeps running in the background until you log out or restart. If `server.py` has changed since the server started, the next run restarts it automatically.
 
 - Model and effort: summaries use Sonnet 5.5 at medium effort. Override with `YT_SUMMARY_MODEL=claude-opus-5-5 YT_SUMMARY_EFFORT=high ./youtube-summary.sh`, or change the defaults at the top of the script (the Shortcut uses those defaults)
 - Use another port: `YT_SUMMARY_PORT=8800 ./youtube-summary.sh`
-- Stop the server: `pkill -f "http.server 47821"` (the next run starts it again)
+- Stop the server: `pkill -f server.py` (the next run, or `./youtube-summary.sh library`, starts it again)
 - Re-render an existing report: `python3 render_report.py reports/X.md reports/X.html`
 
 ## 3. The Shortcut
@@ -110,6 +112,19 @@ The menu bar meter counts actions, not time, so it sits at action 5 while Claude
 
 **If you move this folder**, edit the path in the four Run Shell Script actions.
 
+## 4. The library
+
+Open **`http://localhost:47821/`**, or run `./youtube-summary.sh library` (which also starts the server after a restart). Every summary page has an **← All summaries** link back to it.
+
+- **Browse:** each summary shows the video's thumbnail and title, newest first. Runs that are still in progress or failed get a badge. Use the search box to filter by title.
+- **Folders:** **+ New folder** in the sidebar creates one. Click a folder to see its summaries; **Unsorted** shows those not in any folder. Hover a folder and click **✕** to delete it; its summaries go back to Unsorted, they are not deleted.
+- **Organize:** tick the checkbox on one or more cards (it appears on hover), then use **Move to** or **Delete** in the bar that appears. You can also drag cards onto a folder in the sidebar. `Esc` clears the selection.
+- **Delete** removes the summary's files (`.md`, `.html`, any old `.log`/`.pdf` and its run folder) after a confirmation. This can't be undone.
+
+Folders are saved in `reports/library.json`. The report files never move, so links to them keep working.
+
+The library's write actions (delete, folders, move) only accept requests from the library page itself, so other websites open in your browser can't trigger them.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -119,4 +134,5 @@ The menu bar meter counts actions, not time, so it sits at action 5 while Claude
 | Page stuck on a step | Check the Shortcuts menu bar icon is still running, and look at `reports/.jobs/<job>/status.json` |
 | Headings aren't clickable | The report has no `(MM:SS – MM:SS)` in its headings. Re-run, or add the timestamps to the `.md` and re-render |
 | "Error 153" in the player | The page was opened as a file. Open it through `http://localhost:47821/` |
+| `localhost:47821` doesn't load (e.g. after a restart) | Run `./youtube-summary.sh library`, or any summary |
 | Shortcut does nothing | Check **Allow Running Scripts** is on, and the path in the action is correct |

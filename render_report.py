@@ -64,6 +64,9 @@ blockquote { border-left: 3px solid var(--rule); margin-left: 0; padding-left: 1
 hr { border: 0; border-top: 1px solid var(--rule); }
 table { border-collapse: collapse; } td, th { border: 1px solid var(--rule); padding: 4px 8px; }
 
+.crumbs { font-size: 14px; margin-bottom: -4px; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
 #video-slot { aspect-ratio: 16 / 9; margin: 1em 0 1.5em; }
 #video { width: 100%; height: 100%; }
 #video iframe { width: 100%; height: 100%; border: 0; border-radius: 8px; }
@@ -92,6 +95,7 @@ a.seek:hover { background: var(--hover); color: var(--link); }
 #error { color: var(--err); white-space: pre-wrap; }
 </style>
 </head><body>
+<nav class="crumbs"><a href="/">← All summaries</a></nav>
 <header><h1 id="title">__TITLE__</h1></header>
 <div id="video-slot" hidden><div id="video"><div id="yt"></div></div></div>
 <section id="progress" hidden>

@@ -3,6 +3,7 @@
 # show the report as a web page with the video embedded.
 #
 #   youtube-summary.sh [URL]            run every step (URL defaults to the clipboard)
+#   youtube-summary.sh library          open the library of all summaries (starts the server if needed)
 #
 # The Shortcut runs the steps one by one, so its progress meter moves:
 #   youtube-summary.sh start [URL]      check link, open live progress page, print JOB
@@ -42,14 +43,26 @@ set_job() {
   URL="$(python3 "$DIR/job_status.py" get "$JOBDIR/status.json" url)"
 }
 
-# YouTube embeds don't play from file:// pages, so serve reports/ on localhost.
-# The server is started once and keeps running in the background.
+# YouTube embeds don't play from file:// pages, so reports/ is served on
+# localhost by server.py, which also hosts the library page. The server is
+# started once and keeps running in the background; it's restarted when
+# server.py has changed since it started.
+server_is_current() {
+  curl -sf "http://127.0.0.1:$PORT/api/ping" 2> /dev/null | python3 -c '
+import json, os, sys
+ping = json.load(sys.stdin)
+sys.exit(0 if ping.get("app") == "yt-summary" and ping.get("mtime") == os.path.getmtime(sys.argv[1]) else 1)
+' "$DIR/server.py" 2> /dev/null
+}
+
 ensure_server() {
-  touch "$REPORTS/.yt-summary-server"
-  curl -sf "http://127.0.0.1:$PORT/.yt-summary-server" > /dev/null && return
-  nohup python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$REPORTS" > /dev/null 2>&1 &!
+  server_is_current && return
+  pkill -f "http.server $PORT" 2> /dev/null || true
+  pkill -f "$DIR/server.py" 2> /dev/null || true
+  sleep 0.3
+  nohup python3 "$DIR/server.py" --port "$PORT" --dir "$REPORTS" > /dev/null 2>&1 &!
   for _ in {1..20}; do
-    curl -sf "http://127.0.0.1:$PORT/.yt-summary-server" > /dev/null && return
+    server_is_current && return
     sleep 0.25
   done
 }
@@ -119,6 +132,7 @@ case "${1:-}" in
   transcript) step_transcript "${2:-}" ;;
   summarize)  step_summarize "${2:-}" ;;
   finish)     step_finish "${2:-}" ;;
+  library)    ensure_server; open "http://localhost:$PORT/" ;;
   *)
     JOB="$(step_start "${1:-}")"
     step_transcript "$JOB" > /dev/null
