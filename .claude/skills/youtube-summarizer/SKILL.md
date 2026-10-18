@@ -77,6 +77,7 @@ Write in the language the user wrote their request in; if the request is only a 
 Guidelines:
 - Scale length to the content: a 2-minute clip gets a short report; a 2-hour lecture gets a long one. Omit sections that would be empty (e.g. no resources mentioned) rather than padding them.
 - Attribute views to the speaker ("the speaker argues…") instead of presenting them as fact; flag claims that are notably disputed or outdated.
+- Every `###` heading in Detailed Summary must end with its time range in the form `(MM:SS – MM:SS)` (or `H:MM:SS` past an hour), taken from the transcript's `[MM:SS]` markers. The HTML viewer turns these headings into links that seek the embedded video, so use timestamps nowhere else in headings.
 - Keep quotes short and exact; put timestamps on sections, not on every sentence.
 - If title/channel came back as `unknown`, say so; don't guess them.
 
