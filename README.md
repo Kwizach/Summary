@@ -21,7 +21,7 @@ It works in three layers, each usable on its own:
 ├── YouTube Summary.shortcut         # macOS Shortcuts file
 └── reports/
     ├── summary-<date>.md / .html    # your reports
-    └── .jobs/summary-<date>/        # per-run status, transcript and logs
+    └── .jobs/summary-<date>/        # per-run status, transcript and logs (deleted after a successful run)
 ```
 
 ## Requirements
@@ -77,7 +77,7 @@ It runs four steps, which the Shortcut calls one at a time (`./youtube-summary.s
 | `summarize JOB` | Runs `claude -p "/youtube-summarizer <link>"` in this folder and streams its activity to the page. Claude reads the already-fetched transcript, and may only use the skill, read files and run `python3`/`pip`/`echo`, because the link and transcript are untrusted text |
 | `finish JOB` | Saves `summary-<date>.md`, rebuilds `summary-<date>.html` with the report embedded, and marks the job done. The open page then shows the report without reloading, so the video keeps playing |
 
-If a step fails, the page shows which one and why, and the Shortcut stops with the error. Logs are in `reports/.jobs/summary-<date>/`.
+If a step fails, the page shows which one and why, and the Shortcut stops with the error. The run's working files (status, transcript, Claude logs) are kept in `reports/.jobs/summary-<date>/` for debugging. After a successful run, that folder is deleted automatically.
 
 **Why localhost?** YouTube refuses to play embedded videos on pages opened from a file (`file://…`, "Error 153"). So the script starts a small web server the first time it runs. The server is bound to `127.0.0.1` and serves only `reports/`, and it keeps running in the background until you log out. Open `http://localhost:47821/` to browse all your reports.
 

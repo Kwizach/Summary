@@ -106,6 +106,8 @@ step_finish() {
   python3 "$DIR/render_report.py" "$REPORTS/$JOB.md" "$REPORTS/$JOB.html" "$URL" \
     || fail rendering "Could not render the page"
   status done "Done"
+  # Remove the job's working files once the open page has had time to see "done".
+  ( sleep 5; rm -rf "$JOBDIR" ) > /dev/null 2>&1 &!
   print "$JOB"
 }
 

@@ -215,13 +215,15 @@ async function poll() {
   let status;
   try {
     const response = await fetch(".jobs/" + JOB + "/status.json?t=" + Date.now(), { cache: "no-store" });
-    status = await response.json();
+    // The job folder is deleted after a successful run: fall back to the finished report.
+    status = response.status === 404 ? { state: "done" } : await response.json();
   } catch (e) {
     return setTimeout(poll, 2000);
   }
   renderStatus(status);
   if (status.state === "done") {
     const response = await fetch(JOB + ".md?t=" + Date.now(), { cache: "no-store" });
+    if (!response.ok) return setTimeout(poll, 2000);
     showReport(await response.text());
     $("progress").hidden = true;
     clearInterval(ticker);
