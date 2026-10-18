@@ -81,6 +81,7 @@ If a step fails, the page shows which one and why, and the Shortcut stops with t
 
 **Why localhost?** YouTube refuses to play embedded videos on pages opened from a file (`file://…`, "Error 153"). So the script starts a small web server the first time it runs. The server is bound to `127.0.0.1` and serves only `reports/`, and it keeps running in the background until you log out. Open `http://localhost:47821/` to browse all your reports.
 
+- Model and effort: summaries use Sonnet 5.5 at medium effort. Override with `YT_SUMMARY_MODEL=claude-opus-5-5 YT_SUMMARY_EFFORT=high ./youtube-summary.sh`, or change the defaults at the top of the script (the Shortcut uses those defaults)
 - Use another port: `YT_SUMMARY_PORT=8800 ./youtube-summary.sh`
 - Stop the server: `pkill -f "http.server 47821"` (the next run starts it again)
 - Re-render an existing report: `python3 render_report.py reports/X.md reports/X.html`

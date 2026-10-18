@@ -22,6 +22,8 @@ export PATH="$HOME/.local/bin:$HOME/.config/pyenv/shims:/opt/homebrew/bin:/usr/l
 DIR="${0:A:h}"
 REPORTS="$DIR/reports"
 PORT="${YT_SUMMARY_PORT:-47821}"
+MODEL="${YT_SUMMARY_MODEL:-claude-sonnet-5-5}"
+EFFORT="${YT_SUMMARY_EFFORT:-medium}"
 EXTRACT="$DIR/.claude/skills/youtube-summarizer/scripts/extract-transcript.py"
 
 status() { python3 "$DIR/job_status.py" set "$JOBDIR/status.json" "$@"; }
@@ -87,6 +89,7 @@ step_summarize() {
   status summarizing "Starting Claude"
   cd "$DIR"
   claude -p "/youtube-summarizer $URL" \
+      --model "$MODEL" --effort "$EFFORT" \
       --append-system-prompt "You are running non-interactively: never ask questions, pick sensible defaults. Do not save any file. The transcript has already been extracted, with the skill's own script, to $JOBDIR/transcript.txt: read that file instead of running the extraction script. Your final message must contain ONLY the complete Markdown report, with no preamble or closing remarks." \
       --allowedTools "Skill" "Read" "Bash(python3:*)" "Bash(pip:*)" "Bash(pip3:*)" "Bash(echo:*)" \
       --output-format stream-json --verbose --include-partial-messages 2> "$JOBDIR/claude.stderr.log" \
